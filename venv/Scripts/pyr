@@ -1,0 +1,6 @@
+#!c:\users\marko\pycharmprojects\librarymanagmentsystem\venv\scripts\python.exe
+
+import sys
+from pyr.shell import main
+
+sys.exit(main())
