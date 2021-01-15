@@ -32,6 +32,7 @@ class MainApp(QMainWindow, ui):
 
         self.pushButton.clicked.connect(self.open_day_to_day_tab)
         self.pushButton_2.clicked.connect(self.open_book_tab)
+        self.pushButton_26.clicked.connect(self.open_client_tab)
         self.pushButton_3.clicked.connect(self.open_users_tab)
         self.pushButton_4.clicked.connect(self.open_settings_tab)
 
@@ -44,6 +45,20 @@ class MainApp(QMainWindow, ui):
         self.pushButton_9.clicked.connect(self.search_books)
         self.pushButton_8.clicked.connect(self.edit_books)
         self.pushButton_10.clicked.connect(self.delete_books)
+
+        self.pushButton_11.clicked.connect(self.add_user)
+        self.pushButton_12.clicked.connect(self.login)
+        self.pushButton_13.clicked.connect(self.edit_user)
+
+        self.pushButton_17.clicked.connect(self.dark_orange_theme)
+        self.pushButton_18.clicked.connect(self.dark_blue_theme)
+        self.pushButton_20.clicked.connect(self.dark_grey_theme)
+        self.pushButton_19.clicked.connect(self.qdark_theme)
+
+        self.pushButton_22.clicked.connect(self.add_new_client)
+        self.pushButton_24.clicked.connect(self.search_client)
+        self.pushButton_23.clicked.connect(self.edit_client)
+        self.pushButton_25.clicked.connect(self.delete_client)
 
     def handle_ui_changes(self):
         self.hiding_themes()
@@ -64,11 +79,14 @@ class MainApp(QMainWindow, ui):
     def open_book_tab(self):
         self.tabWidget.setCurrentIndex(1)
 
-    def open_users_tab(self):
+    def open_client_tab(self):
         self.tabWidget.setCurrentIndex(2)
 
-    def open_settings_tab(self):
+    def open_users_tab(self):
         self.tabWidget.setCurrentIndex(3)
+
+    def open_settings_tab(self):
+        self.tabWidget.setCurrentIndex(4)
 
     ##########################################
     ################# Books ##################
@@ -126,8 +144,9 @@ class MainApp(QMainWindow, ui):
         search_book_title = self.lineEdit_8.text()
 
         self.cur.execute('''
-            UPDATE book SET book_name=%s, book_code=%s, book_category=%s, book_author=%s, book_publisher=%s, book_price=%s WHERE book_name=%s
-        ''', (book_title, book_description, book_code, book_category, book_author, book_publisher, book_price, search_book_title))
+            UPDATE book SET book_name=%s, book_description=%s, book_code=%s, book_category=%s, book_author=%s, book_publisher=%s, book_price=%s WHERE book_name=%s
+        ''', (book_title, book_description, book_code, book_category, book_author, book_publisher, book_price,
+              search_book_title))
         self.db.commit()
         self.statusBar().showMessage("Book updated")
 
@@ -144,15 +163,118 @@ class MainApp(QMainWindow, ui):
             self.statusBar().showMessage("Book deleted")
 
     ##########################################
+    ################# Clients ##################
+    def add_new_client(self):
+        client_name = self.lineEdit_22.text()
+        client_email = self.lineEdit_23.text()
+        client_national_id = self.lineEdit_24.text()
+
+        self.cur.execute('''
+            INSERT INTO clients(client_name, client_email, client_national_id) 
+            VALUES (%s, %s, %s)
+        ''', (client_name, client_email, client_national_id))
+        self.db.commit()
+        self.db.close()
+        self.statusBar().showMessage('New Client Added')
+
+    def show_all_clients(self):
+        pass
+
+    def search_client(self):
+        client_national_id = self.lineEdit_28.text()
+
+        sql = '''SELECT * FROM clients WHERE client_national_id = %s'''
+        self.cur.execute(sql, (client_national_id,))
+        data = self.cur.fetchone()
+        print(data)
+
+        self.statusBar().showMessage('Client Found')
+
+        self.lineEdit_27.setText(data[1])
+        self.lineEdit_25.setText(data[2])
+        self.lineEdit_26.setText(data[3])
+
+    def edit_client(self):
+        client_original_national_id = self.lineEdit_26.text()
+
+        client_name = self.lineEdit_27.text()
+        client_email = self.lineEdit_25.text()
+        client_national_id = self.lineEdit_26.text()
+
+        self.cur.execute('''
+            UPDATE clients SET client_name=%s, client_email=%s, client_national_id=%s WHERE client_national_id=%s
+        ''', (client_name, client_email, client_national_id, client_original_national_id))
+        self.db.commit()
+        self.db.close()
+        self.statusBar().showMessage('Client Updated')
+
+    def delete_client(self):
+        client_original_national_id = self.lineEdit_26.text()
+
+        warning = QMessageBox.warning(self, "Delete Client", "are you sure you want to delete this client", QMessageBox.Yes | QMessageBox.No)
+
+        if warning == QMessageBox.Yes:
+            self.cur.execute('''
+                DELETE FROM clients WHERE client_national_id=%s
+            ''', (client_original_national_id,))
+            self.db.commit()
+            self.close()
+            self.statusBar().showMessage('Client Deleted')
+
+    ##########################################
     ################# Users ##################
     def add_user(self):
-        pass
+        username = self.lineEdit_9.text()
+        email = self.lineEdit_10.text()
+        password = self.lineEdit_11.text()
+        password2 = self.lineEdit_12.text()
+
+        if password == password2:
+            self.cur.execute('''
+                INSERT INTO users(user_name, user_email, user_password)
+                VALUES (%s, %s, %s)
+            ''', (username, email, password))
+            self.db.commit()
+            self.statusBar().showMessage('New User Added')
+        else:
+            self.label_30.setText('Please add a valid password twice')
 
     def edit_user(self):
-        pass
+        username = self.lineEdit_18.text()
+        email = self.lineEdit_15.text()
+        password = self.lineEdit_17.text()
+        password2 = self.lineEdit_16.text()
+
+        original_name = self.lineEdit_14.text()
+
+        if password == password2:
+            self.cur.execute('''
+                UPDATE users SET user_name=%s, user_email=%s, user_password=%s WHERE user_name=%s 
+            ''', (username, email, password, original_name))
+            self.db.commit()
+            self.statusBar().showMessage('User Data Updated Successfully')
+        else:
+            print("Make sure you entered password correctly")
 
     def login(self):
-        pass
+        username = self.lineEdit_14.text()
+        password = self.lineEdit_13.text()
+
+        sql = '''
+            SELECT * FROM users
+        '''
+        self.cur.execute(sql)
+        data = self.cur.fetchall()
+        for row in data:
+            print(row)
+            if username == row[1] and password == row[3]:
+                self.statusBar().showMessage('Valid Username & Password')
+                self.groupBox_4.setEnabled(True)
+
+                self.lineEdit_18.setText(row[1])
+                self.lineEdit_15.setText(row[2])
+                self.lineEdit_17.setText(row[3])
+                self.lineEdit_16.setText('')
 
     ##########################################
     ################# Settings ###############
@@ -274,6 +396,29 @@ class MainApp(QMainWindow, ui):
         for author in data:
             self.comboBox_4.addItem(author[0])
             self.comboBox_6.addItem(author[0])
+
+    ###########################################
+    ################# UI Themes ###############
+
+    def dark_blue_theme(self):
+        style = open('themes/darkblue.css', 'r')
+        style = style.read()
+        self.setStyleSheet(style)
+
+    def dark_grey_theme(self):
+        style = open('themes/darkgrey.css', 'r')
+        style = style.read()
+        self.setStyleSheet(style)
+
+    def dark_orange_theme(self):
+        style = open('themes/darkorange.css', 'r')
+        style = style.read()
+        self.setStyleSheet(style)
+
+    def qdark_theme(self):
+        style = open('themes/qdark.css', 'r')
+        style = style.read()
+        self.setStyleSheet(style)
 
 
 def main():
