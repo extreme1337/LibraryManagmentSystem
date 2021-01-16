@@ -8,6 +8,34 @@ import datetime
 from PyQt5.uic import loadUiType
 
 ui, _ = loadUiType('library.ui')
+login, _ = loadUiType('login.ui')
+
+
+class LoginApp(QWidget, login):
+    def __init__(self):
+        QWidget.__init__(self)
+        self.window2 = MainApp()
+        self.db = MySQLdb.connect(host='localhost', user='markomiseljic', password='markomiseljic', db='library')
+        self.cur = self.db.cursor()
+        self.setupUi(self)
+        self.pushButton.clicked.connect(self.handle_login)
+
+    def handle_login(self):
+        username = self.lineEdit_2.text()
+        password = self.lineEdit_3.text()
+
+        self.cur.execute('''
+            SELECT * FROM users
+        ''')
+
+        data = self.cur.fetchall()
+        for row in data:
+            if username == row[1] and password == row[3]:
+                print('user match')
+                self.close()
+                self.window2.show()
+            else:
+                self.label.setText('Make sure You entered Your Username and Password correctly')
 
 
 class MainApp(QMainWindow, ui):
@@ -498,7 +526,7 @@ class MainApp(QMainWindow, ui):
 
 def main():
     app = QApplication(sys.argv)
-    window = MainApp()
+    window = LoginApp()
     window.show()
     app.exec_()
 
