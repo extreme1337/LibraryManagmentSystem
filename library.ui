@@ -145,7 +145,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -162,39 +162,34 @@
       </property>
       <column>
        <property name="text">
-        <string>Book code</string>
+        <string>Book Name</string>
        </property>
       </column>
       <column>
        <property name="text">
-        <string>Book Title</string>
+        <string>Client Name</string>
        </property>
       </column>
       <column>
        <property name="text">
-        <string>Book Author</string>
+        <string>Type</string>
        </property>
       </column>
       <column>
        <property name="text">
-        <string>Book Publisher</string>
+        <string>Date</string>
        </property>
       </column>
       <column>
        <property name="text">
-        <string>Book Category</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Book Price</string>
+        <string>To</string>
        </property>
       </column>
      </widget>
      <widget class="QPushButton" name="pushButton_6">
       <property name="geometry">
        <rect>
-        <x>782</x>
+        <x>830</x>
         <y>50</y>
         <width>101</width>
         <height>41</height>
@@ -207,9 +202,9 @@
      <widget class="QLineEdit" name="lineEdit">
       <property name="geometry">
        <rect>
-        <x>30</x>
+        <x>10</x>
         <y>50</y>
-        <width>251</width>
+        <width>201</width>
         <height>41</height>
        </rect>
       </property>
@@ -220,7 +215,7 @@
      <widget class="QComboBox" name="comboBox">
       <property name="geometry">
        <rect>
-        <x>380</x>
+        <x>530</x>
         <y>50</y>
         <width>101</width>
         <height>41</height>
@@ -240,7 +235,7 @@
      <widget class="QComboBox" name="comboBox_2">
       <property name="geometry">
        <rect>
-        <x>590</x>
+        <x>720</x>
         <y>50</y>
         <width>101</width>
         <height>41</height>
@@ -300,7 +295,7 @@
      <widget class="QLabel" name="label">
       <property name="geometry">
        <rect>
-        <x>304</x>
+        <x>440</x>
         <y>55</y>
         <width>81</width>
         <height>31</height>
@@ -313,7 +308,7 @@
      <widget class="QLabel" name="label_2">
       <property name="geometry">
        <rect>
-        <x>520</x>
+        <x>640</x>
         <y>50</y>
         <width>71</width>
         <height>41</height>
@@ -321,6 +316,22 @@
       </property>
       <property name="text">
        <string>Days</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_29">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>50</y>
+        <width>201</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="placeholderText">
+       <string>Enter Client Name</string>
       </property>
      </widget>
     </widget>
@@ -366,6 +377,11 @@
         <column>
          <property name="text">
           <string>Book Description</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Book Category</string>
          </property>
         </column>
         <column>

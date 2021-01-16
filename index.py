@@ -3,6 +3,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import sys
 import MySQLdb
+import datetime
 
 from PyQt5.uic import loadUiType
 
@@ -25,6 +26,11 @@ class MainApp(QMainWindow, ui):
         self.show_category_combobox()
         self.show_author_combobox()
         self.show_publisher_combobox()
+
+        self.show_all_clients()
+        self.show_all_books()
+
+        self.show_all_operations()
 
     def handle_buttons(self):
         self.pushButton_5.clicked.connect(self.show_themes)
@@ -60,6 +66,8 @@ class MainApp(QMainWindow, ui):
         self.pushButton_23.clicked.connect(self.edit_client)
         self.pushButton_25.clicked.connect(self.delete_client)
 
+        self.pushButton_6.clicked.connect(self.handle_day_operations)
+
     def handle_ui_changes(self):
         self.hiding_themes()
         self.tabWidget.tabBar().setVisible(False)
@@ -88,14 +96,50 @@ class MainApp(QMainWindow, ui):
     def open_settings_tab(self):
         self.tabWidget.setCurrentIndex(4)
 
+    ###################################################
+    ################# Day Operations ##################
+
+    def handle_day_operations(self):
+        book_title = self.lineEdit.text()
+        client_name = self.lineEdit_29.text()
+        type = self.comboBox.currentText()
+        days_number = self.comboBox_2.currentIndex() + 1
+        today_date = datetime.date.today()
+        to = today_date + datetime.timedelta(days=int(days_number))
+
+        self.cur.execute('''
+            INSERT INTO day_operations(book_name, type, days, date, client, to_date)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''', (book_title, type, days_number, today_date, client_name, to))
+
+        self.db.commit()
+        self.statusBar().showMessage('New Operation Added')
+        self.show_all_operations()
+
+    def show_all_operations(self):
+        self.cur.execute('''
+            SELECT book_name, client, type, date, to_date FROM day_operations
+        ''')
+        data = self.cur.fetchall()
+
+        self.tableWidget.setRowCount(0)
+        self.tableWidget.insertRow(0)
+        for row, form in enumerate(data):
+            for column, item in enumerate(form):
+                self.tableWidget.setItem(row, column, QTableWidgetItem(str(item)))
+                column += 1
+
+            row_position = self.tableWidget.rowCount()
+            self.tableWidget.insertRow(row_position)
+
     ##########################################
     ################# Books ##################
     def add_new_book(self):
         book_title = self.lineEdit_3.text()
         book_code = self.lineEdit_2.text()
-        book_category = self.comboBox_3.currentIndex()
-        book_author = self.comboBox_4.currentIndex()
-        book_publisher = self.comboBox_5.currentIndex()
+        book_category = self.comboBox_3.currentText()
+        book_author = self.comboBox_4.currentText()
+        book_publisher = self.comboBox_5.currentText()
         book_price = self.lineEdit_4.text()
         book_description = self.textEdit.toPlainText()
 
@@ -114,11 +158,11 @@ class MainApp(QMainWindow, ui):
         self.lineEdit_4.setText('')
         self.textEdit.setPlainText('')
 
+        self.show_all_books()
+
     def search_books(self):
         book_title = self.lineEdit_8.text()
-        self.cur.execute('''
-            SELECT * FROM book WHERE book_name = %s
-        ''', (book_title,))
+        self.cur.execute('''SELECT * FROM book WHERE book_name = %s''', (book_title,))
 
         data = self.cur.fetchone()
         print(data)
@@ -127,18 +171,18 @@ class MainApp(QMainWindow, ui):
         self.lineEdit_7.setText(data[1])
         self.textEdit_2.setPlainText(data[2])
         self.lineEdit_5.setText(data[3])
-        self.comboBox_7.setCurrentIndex(data[4])
-        self.comboBox_6.setCurrentIndex(data[5])
-        self.comboBox_8.setCurrentIndex(data[6])
+        self.comboBox_7.setCurrentText(data[4])
+        self.comboBox_6.setCurrentText(data[5])
+        self.comboBox_8.setCurrentText(data[6])
         self.lineEdit_6.setText(str(data[7]))
 
     def edit_books(self):
         book_title = self.lineEdit_7.text()
         book_description = self.textEdit_2.toPlainText()
         book_code = self.lineEdit_5.text()
-        book_category = self.comboBox_7.currentIndex()
-        book_author = self.comboBox_6.currentIndex()
-        book_publisher = self.comboBox_8.currentIndex()
+        book_category = self.comboBox_7.currentText()
+        book_author = self.comboBox_6.currentText()
+        book_publisher = self.comboBox_8.currentText()
         book_price = float(self.lineEdit_6.text())
 
         search_book_title = self.lineEdit_8.text()
@@ -149,6 +193,7 @@ class MainApp(QMainWindow, ui):
               search_book_title))
         self.db.commit()
         self.statusBar().showMessage("Book updated")
+        self.show_all_books()
 
     def delete_books(self):
         search_book_title = self.lineEdit_8.text()
@@ -161,6 +206,23 @@ class MainApp(QMainWindow, ui):
             ''', (search_book_title,))
             self.db.commit()
             self.statusBar().showMessage("Book deleted")
+            self.show_all_books()
+
+    def show_all_books(self):
+        self.cur.execute('''
+                    SELECT book_code, book_name, book_description, book_category, book_author, book_publisher, book_price FROM book
+                ''')
+        data = self.cur.fetchall()
+        self.tableWidget_6.setRowCount(0)
+        self.tableWidget_6.insertRow(0)
+
+        for row, form in enumerate(data):
+            for column, item in enumerate(form):
+                self.tableWidget_6.setItem(row, column, QTableWidgetItem(str(item)))
+                column += 1
+
+            row_position = self.tableWidget_6.rowCount()
+            self.tableWidget_6.insertRow(row_position)
 
     ##########################################
     ################# Clients ##################
@@ -174,11 +236,24 @@ class MainApp(QMainWindow, ui):
             VALUES (%s, %s, %s)
         ''', (client_name, client_email, client_national_id))
         self.db.commit()
-        self.db.close()
         self.statusBar().showMessage('New Client Added')
+        self.show_all_clients()
 
     def show_all_clients(self):
-        pass
+        self.cur.execute('''
+            SELECT client_name, client_email, client_national_id FROM clients
+        ''')
+        data = self.cur.fetchall()
+        self.tableWidget_5.setRowCount(0)
+        self.tableWidget_5.insertRow(0)
+
+        for row, form in enumerate(data):
+            for column, item in enumerate(form):
+                self.tableWidget_5.setItem(row, column, QTableWidgetItem(str(item)))
+                column += 1
+
+            row_position = self.tableWidget_5.rowCount()
+            self.tableWidget_5.insertRow(row_position)
 
     def search_client(self):
         client_national_id = self.lineEdit_28.text()
@@ -195,7 +270,7 @@ class MainApp(QMainWindow, ui):
         self.lineEdit_26.setText(data[3])
 
     def edit_client(self):
-        client_original_national_id = self.lineEdit_26.text()
+        client_original_national_id = self.lineEdit_28.text()
 
         client_name = self.lineEdit_27.text()
         client_email = self.lineEdit_25.text()
@@ -205,11 +280,11 @@ class MainApp(QMainWindow, ui):
             UPDATE clients SET client_name=%s, client_email=%s, client_national_id=%s WHERE client_national_id=%s
         ''', (client_name, client_email, client_national_id, client_original_national_id))
         self.db.commit()
-        self.db.close()
         self.statusBar().showMessage('Client Updated')
+        self.show_all_clients()
 
     def delete_client(self):
-        client_original_national_id = self.lineEdit_26.text()
+        client_original_national_id = self.lineEdit_28.text()
 
         warning = QMessageBox.warning(self, "Delete Client", "are you sure you want to delete this client", QMessageBox.Yes | QMessageBox.No)
 
@@ -218,8 +293,8 @@ class MainApp(QMainWindow, ui):
                 DELETE FROM clients WHERE client_national_id=%s
             ''', (client_original_national_id,))
             self.db.commit()
-            self.close()
             self.statusBar().showMessage('Client Deleted')
+        self.show_all_clients()
 
     ##########################################
     ################# Users ##################
