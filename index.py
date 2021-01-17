@@ -6,6 +6,8 @@ import MySQLdb
 import datetime
 
 from PyQt5.uic import loadUiType
+from xlrd import *
+from xlsxwriter import *
 
 ui, _ = loadUiType('library.ui')
 login, _ = loadUiType('login.ui')
@@ -14,6 +16,9 @@ login, _ = loadUiType('login.ui')
 class LoginApp(QWidget, login):
     def __init__(self):
         QWidget.__init__(self)
+        style = open('themes/darkorange.css')
+        style = style.read()
+        self.setStyleSheet(style)
         self.window2 = MainApp()
         self.db = MySQLdb.connect(host='localhost', user='markomiseljic', password='markomiseljic', db='library')
         self.cur = self.db.cursor()
@@ -41,6 +46,9 @@ class LoginApp(QWidget, login):
 class MainApp(QMainWindow, ui):
     def __init__(self):
         QMainWindow.__init__(self)
+        style = open('themes/darkorange.css')
+        style = style.read()
+        self.setStyleSheet(style)
         self.db = MySQLdb.connect(host='localhost', user='markomiseljic', password='markomiseljic', db='library')
         self.cur = self.db.cursor()
         self.setupUi(self)
@@ -93,6 +101,10 @@ class MainApp(QMainWindow, ui):
         self.pushButton_24.clicked.connect(self.search_client)
         self.pushButton_23.clicked.connect(self.edit_client)
         self.pushButton_25.clicked.connect(self.delete_client)
+
+        self.pushButton_29.clicked.connect(self.export_dat_operations)
+        self.pushButton_27.clicked.connect(self.export_books)
+        self.pushButton_28.clicked.connect(self.export_clients)
 
         self.pushButton_6.clicked.connect(self.handle_day_operations)
 
@@ -499,6 +511,84 @@ class MainApp(QMainWindow, ui):
         for author in data:
             self.comboBox_4.addItem(author[0])
             self.comboBox_6.addItem(author[0])
+
+    ###################################################
+    ################# Export Data #####################
+
+    def export_dat_operations(self):
+        self.cur.execute('''
+            SELECT book_name, client, type, date, to_date FROM day_operations
+        ''')
+        data = self.cur.fetchall()
+        wb = Workbook('day_operations.xlsx')
+        sheet1 = wb.add_worksheet()
+
+        sheet1.write(0, 0, 'book_title')
+        sheet1.write(0, 1, 'client_name')
+        sheet1.write(0, 2, 'type')
+        sheet1.write(0, 3, 'from - date')
+        sheet1.write(0, 4, 'to - date')
+
+        row_number = 1
+        for row in data:
+            column_number = 0
+            for item in row:
+                sheet1.write(row_number, column_number, str(item))
+                column_number += 1
+            row_number += 1
+
+        wb.close()
+        self.statusBar().showMessage('Report Created Successfully')
+
+    def export_books(self):
+        self.cur.execute('''
+                    SELECT book_code, book_name, book_description, book_category, book_author, book_publisher, book_price FROM book
+                ''')
+        data = self.cur.fetchall()
+        wb = Workbook('books.xlsx')
+        sheet1 = wb.add_worksheet()
+
+        sheet1.write(0, 0, 'book_code')
+        sheet1.write(0, 1, 'book_name')
+        sheet1.write(0, 2, 'book_description')
+        sheet1.write(0, 3, 'book_category')
+        sheet1.write(0, 4, 'book_author')
+        sheet1.write(0, 5, 'book_publisher')
+        sheet1.write(0, 6, 'book_price')
+
+        row_number = 1
+        for row in data:
+            column_number = 0
+            for item in row:
+                sheet1.write(row_number, column_number, str(item))
+                column_number += 1
+            row_number += 1
+
+        wb.close()
+        self.statusBar().showMessage('Book Report Created Successfully')
+
+    def export_clients(self):
+        self.cur.execute('''
+                    SELECT client_name, client_email, client_national_id FROM clients
+                ''')
+        data = self.cur.fetchall()
+        wb = Workbook('clients.xlsx')
+        sheet1 = wb.add_worksheet()
+
+        sheet1.write(0, 0, 'client_name')
+        sheet1.write(0, 1, 'client_email')
+        sheet1.write(0, 2, 'client_national_id')
+
+        row_number = 1
+        for row in data:
+            column_number = 0
+            for item in row:
+                sheet1.write(row_number, column_number, str(item))
+                column_number += 1
+            row_number += 1
+
+        wb.close()
+        self.statusBar().showMessage('Client Report Created Successfully')
 
     ###########################################
     ################# UI Themes ###############
